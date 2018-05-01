@@ -1,14 +1,14 @@
-#!/bin/bash
+#!/bin/sh
 
-if [ $# != 1 ]; then
-  echo Specify an image to download
-  exit 1
-fi
+dockerd &
+for i in {0..30}
+do
+  docker info > /dev/null 2>&1
+  if [ $? == 0 ]; then
+    downloader $*
+    exit 0
+  fi
+  sleep 1s
+done
 
-IMAGE=$1
-DEST="/download"
-
-mkdir -p "$DEST" || exit 1
-/download.sh "$DEST" "$IMAGE" > /dev/null 2>&1 || exit 1
-cd "$DEST"
-tar cf "/data/$IMAGE.tar" . || exit 1
+echo Unabled to start docker daemon. 1>&2

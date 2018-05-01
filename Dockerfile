@@ -1,10 +1,12 @@
-FROM golang:1.9
+FROM golang:1.9 as builder
 
-RUN curl -o /download.sh https://raw.githubusercontent.com/moby/moby/master/contrib/download-frozen-image-v2.sh && \
-    chmod +x /download.sh && \
-    curl -Lo /bin/jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 && \
-    chmod +x /bin/jq
+WORKDIR /go/src/github.com/uphy/docker-image-downloader
+COPY . .
+RUN CGO_ENABLED=0 go build -o /downloader .
 
+FROM docker:18.04.0-ce-dind
+
+COPY --from=builder /downloader /bin/downloader
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
